@@ -5,6 +5,7 @@ import (
     "os"
     "time"
     "github.com/spf13/cobra"
+    "github.com/geekyharsh05/gurl/pkg/ui"
 )
 
 const (
@@ -15,6 +16,19 @@ var rootCmd = &cobra.Command{
     Use:   "gurl",
     Short: "Modern HTTP client inspired by curl",
     Long:  `gurl is a fast, reliable HTTP client with JSON support and intuitive syntax`,
+    PersistentPreRun: func(cmd *cobra.Command, args []string) {
+        // Only show welcome banner for the root command and when not disabled
+        if cmd.Name() == "gurl" && os.Getenv("GURL_NO_BANNER") != "1" {
+            ui.DisplayWelcome(version)
+        }
+    },
+    Run: func(cmd *cobra.Command, args []string) {
+        // If no subcommand is provided, display the welcome banner and help
+        if os.Getenv("GURL_NO_BANNER") != "1" {
+            ui.DisplayWelcome(version)
+        }
+        cmd.Help()
+    },
 }
 
 // Version command to display version information
@@ -36,6 +50,8 @@ func init() {
     rootCmd.PersistentFlags().BoolP("insecure", "k", false, "Allow insecure server connections")
     rootCmd.PersistentFlags().Duration("timeout", 30*time.Second, "Request timeout")
     rootCmd.PersistentFlags().Int("max-redirects", 10, "Maximum number of redirects to follow")
+    rootCmd.PersistentFlags().Duration("wait-time", 0, "Wait for the specified duration before making the request")
+    rootCmd.PersistentFlags().Bool("no-color", false, "Disable colorized output")
     
     rootCmd.AddCommand(versionCmd)
 }

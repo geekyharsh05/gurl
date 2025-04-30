@@ -1,14 +1,15 @@
 package cmd
 
 import (
-    "encoding/json"
     "fmt"
     "os"
-    "strings"
     
     "github.com/fatih/color"
     "github.com/spf13/cobra"
     "github.com/geekyharsh05/gurl/pkg/client"
+    "github.com/geekyharsh05/gurl/pkg/config"
+    "github.com/geekyharsh05/gurl/pkg/printer"
+    "github.com/geekyharsh05/gurl/pkg/utils"
 )
 
 var requestCmd = &cobra.Command{
@@ -20,6 +21,12 @@ var requestCmd = &cobra.Command{
         if len(args) == 0 {
             return fmt.Errorf("URL is required")
         }
+        
+        // Disable colors if requested
+        if noColor, _ := rootCmd.PersistentFlags().GetBool("no-color"); noColor {
+            color.NoColor = true
+        }
+        
         return nil
     },
 }
@@ -39,9 +46,46 @@ func init() {
 }
 
 func makeRequest(cmd *cobra.Command, args []string) {
+    // Create a configuration object
+    cfg := buildConfig(cmd, args)
+
+    // Show waiting message if verbose mode is enabled
+    if cfg.WaitTime > 0 && cmd.Flag("verbose").Changed {
+        color.Yellow("Waiting for %v before making request...", cfg.WaitTime)
+    }
+
+    // Execute the request
+    resp, err := client.NewClient(cfg).Execute()
+    if err != nil {
+        color.Red("Error: %v", err)
+        os.Exit(1)
+    }
+
+    // Create a printer for formatted output
+    outputFile, _ := cmd.Flags().GetString("output")
+    formatJSON, _ := cmd.Flags().GetBool("json")
+    
+    // Auto-detect and format JSON responses unless explicitly disabled
+    autoDetectJSON := true
+    if cmd.Flag("no-pretty").Changed {
+        autoDetectJSON = false
+    }
+    
+    printer := printer.NewPrinter(
+        cmd.Flag("verbose").Changed,
+        formatJSON || autoDetectJSON,
+        outputFile,
+    )
+    
+    // Print the response
+    printer.Print(resp)
+}
+
+// buildConfig creates a config object from command flags
+func buildConfig(cmd *cobra.Command, args []string) config.Config {
     method := cmd.Flag("method").Value.String()
     headers, _ := cmd.Flags().GetStringArray("header")
-    parsedHeaders := parseHeaders(headers, nil)
+    parsedHeaders := utils.ParseHeaders(headers)
     
     // Set content type shortcuts
     if cmd.Flag("json-request").Changed {
@@ -58,7 +102,10 @@ func makeRequest(cmd *cobra.Command, args []string) {
     // Get max redirects from persistent flag
     maxRedirects, _ := rootCmd.PersistentFlags().GetInt("max-redirects")
     
-    cfg := client.Config{
+    // Get wait time from persistent flag
+    waitTime, _ := rootCmd.PersistentFlags().GetDuration("wait-time")
+    
+    return config.Config{
         URL:            args[0],
         Method:         method,
         Body:           cmd.Flag("data").Value.String(),
@@ -67,121 +114,6 @@ func makeRequest(cmd *cobra.Command, args []string) {
         Timeout:        timeout,
         FollowRedirect: followRedirects,
         MaxRedirects:   maxRedirects,
+        WaitTime:       waitTime,
     }
-
-    resp, err := client.NewClient(cfg).Execute()
-    if err != nil {
-        color.Red("Error: %v", err)
-        os.Exit(1)
-    }
-
-    outputFile, _ := cmd.Flags().GetString("output")
-    formatJSON, _ := cmd.Flags().GetBool("json")
-    
-    // Auto-detect and format JSON responses unless explicitly disabled
-    autoDetectJSON := true
-    if cmd.Flag("no-pretty").Changed {
-        autoDetectJSON = false
-    }
-    
-    printResponse(resp, cmd.Flag("verbose").Changed, outputFile, formatJSON || autoDetectJSON)
-}
-
-func printResponse(resp *client.Response, verbose bool, outputFile string, formatJSON bool) {
-    if verbose {
-        color.Cyan("%s %s", resp.Proto, resp.Status)
-        for k, v := range resp.Headers {
-            color.Cyan("%s: %s", k, v[0])
-        }
-        
-        // Print timing and redirect info
-        color.Yellow("Time: %v", resp.TotalTime)
-        if resp.RedirectsFollowed > 0 {
-            color.Yellow("Redirects: %d", resp.RedirectsFollowed)
-        }
-        
-        fmt.Println()
-    }
-    
-    bodyContent := resp.Body
-    
-    // Check if response appears to be JSON
-    isValidJSON := isJSON(bodyContent)
-    
-    // Check content type for JSON
-    isJSONContentType := false
-    if resp.ContentType != "" {
-        contentType := strings.ToLower(resp.ContentType)
-        if strings.Contains(contentType, "application/json") || 
-           strings.Contains(contentType, "application/ld+json") {
-            isJSONContentType = true
-        }
-    }
-    
-    // Format JSON if it's valid JSON or has JSON content type
-    if formatJSON && (isValidJSON || isJSONContentType) {
-        var obj interface{}
-        if err := json.Unmarshal(bodyContent, &obj); err == nil {
-            // Convert back to JSON with pretty formatting
-            formattedJSON, err := json.MarshalIndent(obj, "", "  ")
-            if err == nil {
-                bodyContent = formattedJSON
-            }
-        }
-    }
-    
-    // Write to file if specified
-    if outputFile != "" {
-        if err := os.WriteFile(outputFile, bodyContent, 0644); err != nil {
-            color.Red("Error writing to file: %v", err)
-        } else {
-            color.Green("Response written to %s", outputFile)
-        }
-        return
-    }
-    
-    // Output the response body with color based on content type
-    if isValidJSON || isJSONContentType {
-        fmt.Println(color.CyanString(string(bodyContent)))
-    } else {
-        fmt.Println(string(bodyContent))
-    }
-}
-
-// Helper to parse headers
-func parseHeaders(headers []string, err error) map[string]string {
-    if err != nil {
-        return make(map[string]string)
-    }
-    
-    h := make(map[string]string)
-    for _, header := range headers {
-        split := strings.SplitN(header, ":", 2)
-        if len(split) == 2 {
-            h[strings.TrimSpace(split[0])] = strings.TrimSpace(split[1])
-        }
-    }
-    return h
-}
-
-// Check if byte slice is valid JSON
-func isJSON(data []byte) bool {
-    var js json.RawMessage
-    return json.Unmarshal(data, &js) == nil
-}
-
-// Custom flag type for array values
-type ArrayFlags []string
-
-func (a *ArrayFlags) String() string { 
-    return strings.Join(*a, ",") 
-}
-
-func (a *ArrayFlags) Set(value string) error {
-    *a = append(*a, value)
-    return nil
-}
-
-func (a *ArrayFlags) Type() string {
-    return "stringArray"
 }
