@@ -24,6 +24,12 @@ var rootCmd = &cobra.Command{
         }
     },
     Run: func(cmd *cobra.Command, args []string) {
+        // Check if version flag is set
+        if versionFlag, _ := cmd.Flags().GetBool("version"); versionFlag {
+            fmt.Printf("gurl version %s\n", version)
+            return
+        }
+
         // If no subcommand is provided, display the welcome banner and help
         if os.Getenv("GURL_NO_BANNER") != "1" {
             ui.DisplayWelcome(version)
@@ -50,6 +56,7 @@ func Execute() {
 
 // init sets up global flags and adds subcommands
 func init() {
+    rootCmd.Flags().BoolP("version", "V", false, "Display version information")
     rootCmd.PersistentFlags().BoolP("insecure", "k", false, "Allow insecure server connections")
     rootCmd.PersistentFlags().Duration("timeout", 30*time.Second, "Request timeout")
     rootCmd.PersistentFlags().Int("max-redirects", 10, "Maximum number of redirects to follow")
