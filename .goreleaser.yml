@@ -1,3 +1,5 @@
+version: 2
+
 builds:
   - binary: gurl
     env:
@@ -25,8 +27,7 @@ brews:
   - name: gurl
     tap:
       owner: geekyharsh05
-      name: homebrew-tap
-      token: "{{ .Env.GITHUB_TOKEN }}"
+      name: homebrew-gurl
     commit_author:
       name: geekyharsh05
       email: msg.theharsh@gmail.com
