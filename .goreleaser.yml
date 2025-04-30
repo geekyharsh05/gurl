@@ -59,15 +59,6 @@ nfpms:
     formats:
       - deb
       - rpm
-    dependencies:
-      - ca-certificates
-    contents:
-      - src: ./completions/gurl.bash
-        dst: /usr/share/bash-completion/completions/gurl
-      - src: ./completions/gurl.zsh
-        dst: /usr/share/zsh/site-functions/_gurl
-      - src: ./completions/gurl.fish
-        dst: /usr/share/fish/vendor_completions.d/gurl.fish
 
 winget:
   - name: gurl
