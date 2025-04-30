@@ -12,6 +12,7 @@ import (
     "github.com/geekyharsh05/gurl/pkg/utils"
 )
 
+// requestCmd handles HTTP requests with various options like headers, method, body
 var requestCmd = &cobra.Command{
     Use:   "request [URL]",
     Short: "Make HTTP request",
@@ -31,6 +32,7 @@ var requestCmd = &cobra.Command{
     },
 }
 
+// init registers flags for the request command and adds it to the root command
 func init() {
     requestCmd.Flags().StringP("method", "X", "GET", "HTTP method")
     requestCmd.Flags().StringP("data", "d", "", "Request body")
@@ -45,6 +47,7 @@ func init() {
     rootCmd.AddCommand(requestCmd)
 }
 
+// makeRequest handles the request execution and response processing
 func makeRequest(cmd *cobra.Command, args []string) {
     // Create a configuration object
     cfg := buildConfig(cmd, args)

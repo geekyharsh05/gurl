@@ -12,34 +12,34 @@ import (
 	"github.com/fatih/color"
 )
 
-// ProgressWriter tracks download progress
+// ProgressWriter tracks download progress and provides updates
 type ProgressWriter struct {
-	Total            int64
-	Downloaded       int64
-	LastPercent      int
-	LastUpdate       time.Time
-	Start            time.Time
-	Filename         string
-	ShowProgressBar  bool
+	Total            int64       // Total file size in bytes
+	Downloaded       int64       // Amount downloaded so far
+	LastPercent      int         // Last percentage displayed
+	LastUpdate       time.Time   // Time of last update
+	Start            time.Time   // Start time of download
+	Filename         string      // Name of file being downloaded
+	ShowProgressBar  bool        // Whether to show progress bar
 }
 
-// Downloader handles file downloads with resume capability
+// Downloader handles file downloads with resume capability and retries
 type Downloader struct {
-	URL              string
-	OutputDir        string
-	Filename         string
-	NumConnections   int
-	ShowProgress     bool
-	Resume           bool
-	Timeout          time.Duration
-	Insecure         bool
-	FollowRedirect   bool
-	MaxRedirects     int
-	Retries          int
-	RetryDelay       time.Duration
+	URL              string        // URL to download
+	OutputDir        string        // Directory to save file
+	Filename         string        // Name to save file as
+	NumConnections   int           // Number of concurrent connections
+	ShowProgress     bool          // Whether to show progress
+	Resume           bool          // Whether to resume partial downloads
+	Timeout          time.Duration // Connection timeout
+	Insecure         bool          // Allow insecure TLS connections
+	FollowRedirect   bool          // Whether to follow redirects
+	MaxRedirects     int           // Maximum number of redirects to follow
+	Retries          int           // Number of retry attempts
+	RetryDelay       time.Duration // Delay between retries
 }
 
-// NewDownloader creates a new downloader instance
+// NewDownloader creates a new downloader instance with the specified options
 func NewDownloader(url, outputDir, filename string, showProgress, resume bool, insecure bool, timeout time.Duration, noRedirect bool, maxRedirects int) *Downloader {
 	return &Downloader{
 		URL:            url,
@@ -57,7 +57,7 @@ func NewDownloader(url, outputDir, filename string, showProgress, resume bool, i
 	}
 }
 
-// Download starts the download process
+// Download starts the download process with retry logic
 func (d *Downloader) Download() error {
 	var lastErr error
 	
@@ -130,7 +130,7 @@ func (d *Downloader) executeDownload() error {
 	// Set user agent
 	req.Header.Set("User-Agent", "gurl/1.0")
 
-	// Make HTTP request
+	// Configure HTTP client with appropriate settings
 	client := &http.Client{
 		Timeout: d.Timeout,
 	}
@@ -157,6 +157,7 @@ func (d *Downloader) executeDownload() error {
 		}
 	}
 
+	// Execute the HTTP request
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("download request failed: %w", err)
@@ -242,7 +243,7 @@ func (d *Downloader) executeDownload() error {
 	return nil
 }
 
-// Write implements io.Writer for tracking download progress
+// Write implements io.Writer interface to track download progress
 func (pw *ProgressWriter) Write(p []byte) (int, error) {
 	n := len(p)
 	pw.Downloaded += int64(n)
@@ -255,7 +256,7 @@ func (pw *ProgressWriter) Write(p []byte) (int, error) {
 	return n, nil
 }
 
-// updateProgress displays the progress bar
+// updateProgress shows download progress, speed and ETA
 func (pw *ProgressWriter) updateProgress() {
 	width := 50 // Progress bar width
 	
@@ -321,7 +322,7 @@ func (pw *ProgressWriter) updateProgress() {
 	}
 }
 
-// formatSize returns a human-readable size string
+// formatSize converts byte count to human-readable format
 func formatSize(bytes int64) string {
 	const unit = 1024
 	if bytes < unit {
@@ -335,7 +336,7 @@ func formatSize(bytes int64) string {
 	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }
 
-// formatDuration returns a human-readable duration string
+// formatDuration formats duration in a human-readable way
 func formatDuration(d time.Duration) string {
 	d = d.Round(time.Second)
 	

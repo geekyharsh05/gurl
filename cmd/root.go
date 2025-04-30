@@ -12,6 +12,7 @@ const (
     version = "1.0.0"
 )
 
+// rootCmd is the base command for the gurl CLI application
 var rootCmd = &cobra.Command{
     Use:   "gurl",
     Short: "Modern HTTP client inspired by curl",
@@ -40,12 +41,14 @@ var versionCmd = &cobra.Command{
     },
 }
 
+// Execute runs the root command and handles any errors
 func Execute() {
     if err := rootCmd.Execute(); err != nil {
         os.Exit(1)
     }
 }
 
+// init sets up global flags and adds subcommands
 func init() {
     rootCmd.PersistentFlags().BoolP("insecure", "k", false, "Allow insecure server connections")
     rootCmd.PersistentFlags().Duration("timeout", 30*time.Second, "Request timeout")

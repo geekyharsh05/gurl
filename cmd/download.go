@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// downloadCmd provides wget-like functionality for downloading files 
+// with features like progress tracking and resume capability
 var downloadCmd = &cobra.Command{
 	Use:   "download [URL]",
 	Short: "Download files with wget-like functionality",
@@ -22,6 +24,7 @@ Examples:
 	Run:  runDownload,
 }
 
+// init registers download-specific flags and adds the command to root
 func init() {
 	downloadCmd.Flags().StringP("output", "o", "", "Save file with the specified name")
 	downloadCmd.Flags().StringP("directory", "P", "", "Save files to the specified directory")
@@ -37,6 +40,7 @@ func init() {
 	rootCmd.AddCommand(downloadCmd)
 }
 
+// runDownload executes the file download with the specified options
 func runDownload(cmd *cobra.Command, args []string) {
 	url := args[0]
 	output, _ := cmd.Flags().GetString("output")

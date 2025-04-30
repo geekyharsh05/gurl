@@ -13,10 +13,11 @@ import (
 )
 
 // Printer handles the formatting and output of HTTP responses
+// with options for verbose output, JSON formatting, and file output
 type Printer struct {
-	Verbose       bool
-	FormatJSON    bool
-	OutputFile    string
+	Verbose       bool   // Whether to show detailed information
+	FormatJSON    bool   // Whether to pretty-print JSON responses
+	OutputFile    string // File to write response to (if any)
 }
 
 // NewPrinter creates a new printer with the given options
@@ -28,8 +29,9 @@ func NewPrinter(verbose bool, formatJSON bool, outputFile string) *Printer {
 	}
 }
 
-// Print formats and outputs the response
+// Print formats and outputs the response according to the printer settings
 func (p *Printer) Print(resp *response.Response) error {
+	// Show detailed info in verbose mode
 	if p.Verbose {
 		p.printVerboseInfo(resp)
 	}
@@ -50,7 +52,7 @@ func (p *Printer) Print(resp *response.Response) error {
 		}
 	}
 	
-	// Write to file if specified
+	// Write to file if specified instead of stdout
 	if p.OutputFile != "" {
 		if err := os.WriteFile(p.OutputFile, bodyContent, 0644); err != nil {
 			color.Red("Error writing to file: %v", err)
@@ -65,7 +67,7 @@ func (p *Printer) Print(resp *response.Response) error {
 		ui.DisplaySectionHeader("RESPONSE BODY")
 		
 		if p.FormatJSON {
-			// Use direct coloring here for important elements
+			// Apply syntax highlighting to JSON elements
 			lines := strings.Split(string(bodyContent), "\n")
 			for _, line := range lines {
 				// Color the keys blue
@@ -94,7 +96,7 @@ func (p *Printer) Print(resp *response.Response) error {
 		fmt.Println(string(bodyContent))
 	}
 	
-	// Show completion banner
+	// Show completion banner with status and timing information
 	duration := fmt.Sprintf("%v", resp.TotalTime)
 	ui.DisplayEndBanner(resp.Request, resp.StatusCode, duration)
 	
@@ -102,6 +104,7 @@ func (p *Printer) Print(resp *response.Response) error {
 }
 
 // printVerboseInfo prints detailed information about the response
+// including status, headers, and timing statistics
 func (p *Printer) printVerboseInfo(resp *response.Response) {
 	// Display section headers and formatted content
 	ui.DisplaySectionHeader("RESPONSE INFO")

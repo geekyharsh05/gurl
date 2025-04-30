@@ -11,7 +11,6 @@ import (
 	"github.com/geekyharsh05/gurl/pkg/response"
 )
 
-// Client is an HTTP client for making requests
 type Client struct {
 	cfg config.Config
 }
@@ -27,18 +26,20 @@ func NewClient(cfg config.Config) *Client {
 }
 
 // Execute performs the HTTP request according to the configuration
+// and returns a Response object with the results
 func (c *Client) Execute() (*response.Response, error) {
 	// Wait for the specified duration before making the request
 	if c.cfg.WaitTime > 0 {
 		time.Sleep(c.cfg.WaitTime)
 	}
 	
+	// Create the HTTP request with method, URL and body
 	req, err := http.NewRequest(c.cfg.Method, c.cfg.URL, bytes.NewBufferString(c.cfg.Body))
 	if err != nil {
 		return nil, err
 	}
 
-	// Set headers
+	// Set headers from configuration
 	for k, v := range c.cfg.Headers {
 		req.Header.Set(k, v)
 	}
@@ -48,7 +49,7 @@ func (c *Client) Execute() (*response.Response, error) {
 		req.Header.Set("User-Agent", "gurl/1.0")
 	}
 
-	// Configure client
+	// Configure HTTP client with timeout and TLS settings
 	client := &http.Client{
 		Timeout: c.cfg.Timeout,
 		Transport: &http.Transport{
@@ -58,7 +59,7 @@ func (c *Client) Execute() (*response.Response, error) {
 		},
 	}
 	
-	// Configure redirect policy
+	// Configure redirect policy based on settings
 	redirectsFollowed := 0
 	if !c.cfg.FollowRedirect {
 		client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
@@ -84,7 +85,7 @@ func (c *Client) Execute() (*response.Response, error) {
 	
 	totalTime := time.Since(startTime)
 
-	// Read response
+	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -96,6 +97,7 @@ func (c *Client) Execute() (*response.Response, error) {
 		contentType = ctHeader
 	}
 
+	// Return a structured response with all relevant information
 	return &response.Response{
 		Status:           resp.Status,
 		StatusCode:       resp.StatusCode,
