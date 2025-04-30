@@ -26,7 +26,7 @@ checksum:
 
 archives:
   - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-  
+
 brews:
   - name: gurl
     repository:
@@ -47,3 +47,43 @@ scoops:
     homepage: https://github.com/geekyharsh05/gurl
     description: Modern HTTP client CLI with JSON support
     license: MIT
+
+nfpms:
+  - id: linux-packages
+    package_name: gurl
+    vendor: "geekyharsh05"
+    homepage: "https://github.com/geekyharsh05/gurl"
+    maintainer: "Harsh <msg.theharsh@gmail.com>"
+    description: "Modern HTTP client CLI with JSON support"
+    license: "MIT"
+    formats:
+      - deb
+      - rpm
+    dependencies:
+      - ca-certificates
+    contents:
+      - src: ./completions/gurl.bash
+        dst: /usr/share/bash-completion/completions/gurl
+      - src: ./completions/gurl.zsh
+        dst: /usr/share/zsh/site-functions/_gurl
+      - src: ./completions/gurl.fish
+        dst: /usr/share/fish/vendor_completions.d/gurl.fish
+
+winget:
+  - name: gurl
+    publisher: geekyharsh05
+    license: MIT
+    copyright: "Copyright geekyharsh05"
+    homepage: "https://github.com/geekyharsh05/gurl"
+    short_description: "Modern HTTP client CLI with JSON support"
+    repository:
+      owner: geekyharsh05
+      name: winget-pkgs
+      branch: "gurl-{{.Version}}"
+    pull_request:
+      enabled: true
+      draft: true
+      base:
+        owner: microsoft
+        name: winget-pkgs
+        branch: master
