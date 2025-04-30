@@ -1,0 +1,44 @@
+builds:
+  - binary: gurl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -mod=vendor
+
+release:
+  prerelease: auto
+
+universal_binaries:
+  - replace: true
+
+checksum:
+  name_template: "checksums.txt"
+
+brews:
+  - name: gurl
+    tap:
+      owner: geekyharsh05
+      name: homebrew-tap
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    commit_author:
+      name: geekyharsh05
+      email: msg.theharsh@gmail.com
+    homepage: "https://github.com/geekyharsh05/gurl"
+    description: "Modern HTTP client CLI with JSON support"
+    license: "MIT"
+    skip_upload: false
+
+scoop:
+  bucket:
+    owner: geekyharsh05
+    name: scoop-bucket
+  homepage: https://github.com/geekyharsh05/gurl
+  description: Modern HTTP client CLI with JSON support
+  license: MIT
