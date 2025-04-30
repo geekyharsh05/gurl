@@ -26,6 +26,9 @@ checksum:
 
 archives:
   - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
 
 brews:
   - name: gurl
@@ -71,3 +74,10 @@ winget:
       owner: geekyharsh05
       name: winget-pkgs
       branch: "gurl-{{.Version}}"
+    pull_request:
+      enabled: true
+      draft: true
+      base:
+        owner: microsoft
+        name: winget-pkgs
+        branch: master
