@@ -25,7 +25,7 @@ checksum:
 
 brews:
   - name: gurl
-    tap:
+    repository:
       owner: geekyharsh05
       name: homebrew-gurl
     commit_author:
@@ -36,10 +36,10 @@ brews:
     license: "MIT"
     skip_upload: false
 
-scoop:
-  bucket:
-    owner: geekyharsh05
-    name: scoop-bucket
-  homepage: https://github.com/geekyharsh05/gurl
-  description: Modern HTTP client CLI with JSON support
-  license: MIT
+scoops:
+  - repository:
+      owner: geekyharsh05
+      name: scoop-bucket
+    homepage: https://github.com/geekyharsh05/gurl
+    description: Modern HTTP client CLI with JSON support
+    license: MIT
