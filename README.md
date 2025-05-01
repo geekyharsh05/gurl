@@ -16,6 +16,27 @@ A fast, reliable HTTP client with JSON support and intuitive syntax. Inspired by
 
 ## Installation
 
+### Install on macOS or Linux (with Homebrew)
+
+```bash
+brew tap geekyharsh05/gurl
+brew install gurl
+```
+
+### Install on Windows (with Scoop)
+
+```bash
+scoop bucket add geekyharsh05 https://github.com/geekyharsh05/scoop-bucket
+scoop install gurl
+```
+
+### Install on Linux (Debian/Ubuntu)
+
+```bash
+wget https://github.com/geekyharsh05/gurl/releases/download/v1.0.1/gurl_1.0.1_linux_amd64.deb
+sudo apt install ./gurl_1.0.1_linux_amd64.deb
+```
+
 ### Using Go
 
 ```bash
