@@ -9,7 +9,7 @@ import (
 )
 
 const (
-    version = "1.0.0"
+    version = "1.0.1"
 )
 
 // rootCmd is the base command for the gurl CLI application
@@ -28,11 +28,6 @@ var rootCmd = &cobra.Command{
         if versionFlag, _ := cmd.Flags().GetBool("version"); versionFlag {
             fmt.Printf("gurl version %s\n", version)
             return
-        }
-
-        // If no subcommand is provided, display the welcome banner and help
-        if os.Getenv("GURL_NO_BANNER") != "1" {
-            ui.DisplayWelcome(version)
         }
         cmd.Help()
     },
