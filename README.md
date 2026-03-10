@@ -1,4 +1,4 @@
-# gurl - Modern HTTP Client CLI
+# gurl - Modern HTTP CLI Client 
 
 A fast, reliable HTTP client with JSON support and intuitive syntax. Inspired by curl but with additional modern features.
 
